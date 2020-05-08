@@ -1,0 +1,91 @@
+import xlrd
+import xlwt
+from collections import defaultdict
+from datetime import datetime
+from datetime import date
+import time
+
+def split_date(enteredDate):
+	return(enteredDate.split("/"))
+
+# Main controller for reading and writing
+def Main():
+	read_excel()
+	write_excel()
+
+def read_excel():
+	# To determine if the read was successful
+	check = False
+	while check == False:
+		try:
+			file_location ="F:/PRODUCT ISSUES/2020 PRODUCT ISSUE REPORT.xlsx"
+			workbook = xlrd.open_workbook(file_location)
+			sheet = workbook.sheet_by_index(0)
+			rows = sheet.nrows
+			for row in range (1,rows):
+				curdate = date(xlrd.xldate_as_tuple(sheet.cell_value(row,1),0)[0],xlrd.xldate_as_tuple(sheet.cell_value(row,1),0)[1],xlrd.xldate_as_tuple(sheet.cell_value(row,1),0)[2])
+				item = sheet.cell_value(row,3)
+				replace = "    ***(" + sheet.cell_value(row,6).upper() +")***"
+				num = int(sheet.cell_value(row,0))
+				case = " CASE: " + str(num)
+				temp = ""
+				sn = "     (SN: " + str(sheet.cell_value(row,5)) + ")"
+				if d1 <= curdate <= d2:
+					#print("year is true") 
+					if isinstance(item, float):
+						if item not in item_list:
+							item_list[str(int(item//1))].append("\u2022  " + sheet.cell_value(row,4) + replace + case + sn +"\n")
+							continue
+						else:
+							item_list[item].append("\u2022  " + sheet.cell_value(row,4) + replace + case + n + "\n")
+							continue
+					while (item[len(item)-1].isupper() or item[len(item)-1].islower() or item[len(item)-1] == "-"):
+						item = item[:-1]
+					if item not in item_list:
+							item_list[item].append("\u2022  " + sheet.cell_value(row,4) + replace + case +  sn + "\n")
+					else:
+						item_list[item].append("\u2022  " + sheet.cell_value(row,4) + replace + case + sn +"\n")
+
+		except TypeError:
+			print ("Date might wrong on line ",row + 1)
+			input("Fix the excel sheet and press enter to try again")
+		except IndexError:
+			print ("Item might be wrong on line ",row +1)
+			input("Fix the excel sheet and press enter to try again")
+		except Exception as e:
+			print (type(e))
+			print (e)
+		else:
+			check = True
+
+def write_excel():
+	workbook = xlwt.Workbook(encoding="utf-8")
+	sheet1=workbook.add_sheet("sheet1")
+	style = xlwt.XFStyle()
+	style.alignment.wrap = 5
+	rowCounter = 0
+	date_str = low_date + "-" + high_date
+	sheet1.write(0,0,date_str)
+	for row in item_list:
+		sheet1.write((rowCounter+1),0,row)
+		sheet1.write((rowCounter+1),1,len(item_list[row]))
+		sheet1.write((rowCounter+1),2,item_list[row], style)
+		# for r in item_list[row]:
+		# 	sheet1.write((rowCounter+1),0,row)
+		# 	sheet1.write((rowCounter+1),1,len(item_list[row]))
+		# 	sheet1.write((rowCounter+1),2,r)
+		rowCounter += 1
+
+
+	workbook.save("items.xls")
+
+
+
+low_date = input("Please enter a start date date: EX 01/1/2017: ")
+lowd = split_date(low_date)
+d1 = date(int(lowd[2]),int(lowd[0]),int(lowd[1]))
+high_date = input("Please enter an end date date: EX 12/31/2018: ")
+highd = split_date(high_date)
+d2 = date(int(highd[2]),int(highd[0]),int(highd[1]))
+item_list = defaultdict(list)
+Main()
